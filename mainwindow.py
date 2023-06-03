@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_manager
 from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider
 from PySide6.QtCore import Qt, Signal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -7,16 +8,15 @@ from PySide6.QtGui import QFont, QFontDatabase
 
 
 class SettingsWindow(QDialog):
-    save_clicked = Signal(str, str, bool)
+    save_clicked = Signal(str, str, bool, int)
     mode_changed = Signal(int)
-    show_perc = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Settings")
-        self.setMinimumSize(400, 300)
-        self.setMaximumSize(400, 300)
+        self.setMinimumSize(600, 400)
+        self.setMaximumSize(600, 400)
 
         layout = QVBoxLayout()
         color1_layout = QHBoxLayout()
@@ -43,8 +43,7 @@ class SettingsWindow(QDialog):
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimum(0)
         self.slider.setMaximum(1)
-        self.slider.setValue(1)  # Set initial value to represent dark mode
-        self.slider.valueChanged.connect(self.handle_slider_value_changed)
+        self.slider.valueChanged.connect(self.slider_value_changed)
 
         self.save_button = QPushButton("Save settings")
         self.save_button.clicked.connect(self.save_settings)
@@ -59,7 +58,6 @@ class SettingsWindow(QDialog):
         if font_id != -1 and font_families:
             font_family = font_families[0]
 
-            # Set the font of the QLabel objects
             font = QFont(font_family)
             self.color1_label.setFont(font)
             self.color1_edit.setFont(font)
@@ -70,61 +68,7 @@ class SettingsWindow(QDialog):
             self.save_button.setFont(font)
             self.checkbox_label.setFont(font)
             self.light_label.setFont(font)
-            self.dark_label.setFont(font)
-
-        # Default - dark mode
-        self.setStyleSheet("""
-            QDialog {
-                background-color: #333333;
-            }
-            QLabel {
-                font-size: 15px;
-                color: #FFFFFF;
-            }
-            QLineEdit {
-                padding: 2px;
-                font-size: 15px;
-                color: #FFFFFF;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #222222;
-                selection-color: yellow;
-                selection-background-color: blue;
-            }
-            QPushButton {
-                padding: 6px 12px;
-                font-size: 10px;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #286090;
-                color: #FFFFFF;
-            }
-            QPushButton:hover {
-                background-color: #1A4D73;
-            }
-            QPushButton:pressed {
-                background-color: #144057;
-            }
-            QSlider {
-                background-color: #333333;
-                height: 10px;
-                margin: 0;
-                padding: 0;
-            }
-            QSlider::groove:horizontal {
-                background-color: #a0a0a0;
-                height: 6px;
-                margin: 2px 0;
-            }
-            QSlider::handle:horizontal {
-                background-color: #286090;
-                border: 1px solid #000000;
-                width: 14px;
-                height: 14px;
-                margin: -4px 0;
-                border-radius: 7px;
-            }
-        """)
+            self.dark_label.setFont(font)        
 
 
         color1_layout.addWidget(self.color1_label)
@@ -161,8 +105,8 @@ class SettingsWindow(QDialog):
         if color.isValid():
             self.color2_edit.setText(color.name())
    
-    def handle_slider_value_changed(self):
-        value = self.slider.value()
+    def slider_value_changed(self, value):
+        self.slider.setValue(value)
         self.mode_changed.emit(value)
         if value == 0:
             # Apply light mode styles
@@ -198,25 +142,29 @@ class SettingsWindow(QDialog):
                 QPushButton:pressed {
                     background-color: #144057;
                 }
-                QSlider {
-                    background-color: #e0e0e0;
-                    height: 10px;
-                    margin: 0;
-                    padding: 0;
-                }
-                QSlider::groove:horizontal {
-                    background-color: #a0a0a0;
-                    height: 6px;
-                    margin: 2px 0;
-                }
-                QSlider::handle:horizontal {
-                    background-color: #286090;
-                    border: 1px solid #000000;
-                    width: 14px;
-                    height: 14px;
-                    margin: -4px 0;
-                    border-radius: 7px;
-                }
+             QSlider {
+                background-color: transparent;
+                height: 30px;
+                padding: 0;
+            }
+            QSlider::groove:horizontal {
+                background-color: #333333;
+                height: 6px;
+                border-radius: 3px;
+            }
+            QSlider::handle:horizontal {
+                background-color: #000000;
+                width: 20px;
+                height: 20px;
+                margin: -7px 0;
+                border-radius: 10px;
+            }
+            QSlider::handle:horizontal:hover {
+                background-color: #222222;
+            }
+            QSlider::handle:horizontal:pressed {
+                background-color: #444444;
+            }
             """)
 
         else:
@@ -254,23 +202,27 @@ class SettingsWindow(QDialog):
                     background-color: #144057;
                 }
                 QSlider {
-                    background-color: #333333;
-                    height: 10px;
-                    margin: 0;
+                    background-color: transparent;
+                    height: 30px;
                     padding: 0;
                 }
                 QSlider::groove:horizontal {
-                    background-color: #a0a0a0;
+                    background-color: #E0E0E0;
                     height: 6px;
-                    margin: 2px 0;
+                    border-radius: 3px;
                 }
                 QSlider::handle:horizontal {
-                    background-color: #286090;
-                    border: 1px solid #000000;
-                    width: 14px;
-                    height: 14px;
-                    margin: -4px 0;
-                    border-radius: 7px;
+                    background-color: #FFFFFF;
+                    width: 20px;
+                    height: 20px;
+                    margin: -7px 0;
+                    border-radius: 10px;
+                }
+                QSlider::handle:horizontal:hover {
+                    background-color: #E5E5E5;
+                }
+                QSlider::handle:horizontal:pressed {
+                    background-color: #CCCCCC;
                 }
             """)
 
@@ -279,14 +231,15 @@ class SettingsWindow(QDialog):
         color1 = self.color1_edit.text()
         color2 = self.color2_edit.text()
         state = self.show_percentage.isChecked()
+        value = self.slider.value()
 
-        self.save_clicked.emit(color1, color2, state)
+        self.save_clicked.emit(color1, color2, state, value)
         self.close()
 
 
 
 
-
+###################################################################################################################################################################
 
 
 
@@ -320,40 +273,7 @@ class MainWindow(QMainWindow):
         self.settings_button.clicked.connect(self.open_settings)
 
         # Apply custom styles to the widgets (default dark mode)
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #333333;
-            }
-            QLabel {
-                font-size: 15px;
-                color: #FFFFFF;
-            }
-            QLineEdit {
-                padding: 2px;
-                color: #FFFFFF;
-                font-size: 15px;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #222222;
-                selection-color: yellow;
-                selection-background-color: blue;
-            }
-            QPushButton {
-                padding: 6px 12px;
-                font-size: 10px;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #286090;
-                color: #FFFFFF;
-            }
-            QPushButton:hover {
-                background-color: #1A4D73;
-            }
-            QPushButton:pressed {
-                background-color: #144057;
-            }
-        """)
-
+        self.set_mode(1)
 
         # Create a canvas for the matplotlib chart
         self.figure = plt.figure()
@@ -391,24 +311,27 @@ class MainWindow(QMainWindow):
         self.color1 = "#56CA3D"
         self.color2 = "#CA3D3D"
         self.checkbox = True
+        self.mode = 1
 
     def open_settings(self):
         settings_window = SettingsWindow(self)
+        settings_window.slider_value_changed(self.mode)
         settings_window.color1_edit.setText(self.color1)
         settings_window.color2_edit.setText(self.color2)
         settings_window.show_percentage.setChecked(self.checkbox)
-        settings_window.mode_changed.connect(self.handle_slider_value_changed)
+        settings_window.mode_changed.connect(self.set_mode)
         settings_window.save_clicked.connect(self.handle_settings_saved)
         settings_window.exec_()
 
     
-    def handle_settings_saved(self, color1, color2, state):
+    def handle_settings_saved(self, color1, color2, state, value):
         self.color1 = color1
         self.color2 = color2
         self.checkbox = state
-        self.update_chart(state)
+        self.mode = value
+        self.update_chart()
 
-    def handle_slider_value_changed(self, value):
+    def set_mode(self, value):
         if value == 0:
             # Apply light mode styles
             self.setStyleSheet("""
@@ -483,7 +406,7 @@ class MainWindow(QMainWindow):
 
     
 
-    def update_chart(self, show_percentage):
+    def update_chart(self):
         # Get the input values from the input fields
         input1 = float(self.input1_edit.text())
         input2 = float(self.input2_edit.text())
@@ -500,12 +423,26 @@ class MainWindow(QMainWindow):
 
         # Create the pie chart using Matplotlib
         ax = self.figure.add_subplot(111)
-        if show_percentage:
-            ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
+        font_properties = font_manager.FontProperties(fname="Montserrat-Regular.ttf", size=15) 
+
+
+        if self.mode:
+            self.figure.set_facecolor('#333333') 
+            ax.set_title('Pie Chart Title', color='#FFFFFF', fontdict={"fontproperties": font_properties})
+            if self.checkbox:
+                ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
+            else:
+                ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
         else:
-            ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
+            self.figure.set_facecolor('#E0E0E0') 
+            ax.set_title('Pie Chart Title', color='#000000', fontdict={"fontproperties": font_properties})
+            if self.checkbox:
+                ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "black"})
+            else:
+                ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "black"})
+
         ax.axis('equal')
-        ax.set_title('Pie Chart Title')
+
 
         # Update the canvas
         self.canvas.draw()
