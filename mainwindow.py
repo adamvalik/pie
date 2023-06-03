@@ -1,6 +1,6 @@
 import os
 import matplotlib.pyplot as plt
-from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox
+from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider
 from PySide6.QtCore import Qt, Signal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtGui import QFont, QFontDatabase
@@ -8,18 +8,22 @@ from PySide6.QtGui import QFont, QFontDatabase
 
 class SettingsWindow(QDialog):
     save_clicked = Signal(str, str, bool)
+    mode_changed = Signal(int)
+    show_perc = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Settings")
-        self.setMinimumSize(300, 200)
-        self.setMaximumSize(600, 400)
+        self.setMinimumSize(400, 300)
+        self.setMaximumSize(400, 300)
 
         layout = QVBoxLayout()
         color1_layout = QHBoxLayout()
         color2_layout = QHBoxLayout()
         checkbox_layout = QHBoxLayout()
+        slider_layout = QHBoxLayout()
+        side_layout = QHBoxLayout()
 
         self.color1_label = QLabel("Done:")
         self.color1_edit = QLineEdit()
@@ -33,43 +37,18 @@ class SettingsWindow(QDialog):
 
         self.checkbox_label = QLabel("Show percentage:")
         self.show_percentage = QCheckBox()
-        
-        #####################################
-        self.show_percentage.setChecked(True)
-        #####################################
+
+        self.light_label = QLabel("Light")
+        self.dark_label = QLabel("Dark")
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(1)
+        self.slider.setValue(1)  # Set initial value to represent dark mode
+        self.slider.valueChanged.connect(self.handle_slider_value_changed)
 
         self.save_button = QPushButton("Save settings")
         self.save_button.clicked.connect(self.save_settings)
 
-        self.setStyleSheet("""
-            QLabel {
-                font-size: 15px;
-                color: #FFFFFF;
-            }
-            QLineEdit {
-                padding: 2px;
-                font-size: 15px;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #333333;
-                selection-color: yellow;
-                selection-background-color: blue;
-            }
-            QPushButton {
-                padding: 6px 12px;
-                font-size: 15px;
-                border: 1px solid #FFFFFF;
-                border-radius: 4px;
-                background-color: #286090;
-                color: #FFFFFF;
-            }
-            QPushButton:hover {
-                background-color: #1A4D73;
-            }
-            QPushButton:pressed {
-                background-color: #144057;
-            }
-        """)
 
         # Load and set the font
         font_path = os.path.join(os.path.dirname(__file__), "Montserrat-Regular.ttf")
@@ -90,6 +69,62 @@ class SettingsWindow(QDialog):
             self.color2_button.setFont(font)
             self.save_button.setFont(font)
             self.checkbox_label.setFont(font)
+            self.light_label.setFont(font)
+            self.dark_label.setFont(font)
+
+        # Default - dark mode
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #333333;
+            }
+            QLabel {
+                font-size: 15px;
+                color: #FFFFFF;
+            }
+            QLineEdit {
+                padding: 2px;
+                font-size: 15px;
+                color: #FFFFFF;
+                border: 1px solid #FFFFFF;
+                border-radius: 4px;
+                background-color: #222222;
+                selection-color: yellow;
+                selection-background-color: blue;
+            }
+            QPushButton {
+                padding: 6px 12px;
+                font-size: 10px;
+                border: 1px solid #FFFFFF;
+                border-radius: 4px;
+                background-color: #286090;
+                color: #FFFFFF;
+            }
+            QPushButton:hover {
+                background-color: #1A4D73;
+            }
+            QPushButton:pressed {
+                background-color: #144057;
+            }
+            QSlider {
+                background-color: #333333;
+                height: 10px;
+                margin: 0;
+                padding: 0;
+            }
+            QSlider::groove:horizontal {
+                background-color: #a0a0a0;
+                height: 6px;
+                margin: 2px 0;
+            }
+            QSlider::handle:horizontal {
+                background-color: #286090;
+                border: 1px solid #000000;
+                width: 14px;
+                height: 14px;
+                margin: -4px 0;
+                border-radius: 7px;
+            }
+        """)
 
 
         color1_layout.addWidget(self.color1_label)
@@ -100,10 +135,16 @@ class SettingsWindow(QDialog):
         color2_layout.addWidget(self.color2_button)
         checkbox_layout.addWidget(self.checkbox_label)
         checkbox_layout.addWidget(self.show_percentage)
+        slider_layout.addWidget(self.light_label)
+        slider_layout.addWidget(self.slider)
+        slider_layout.addWidget(self.dark_label)
+        side_layout.addLayout(checkbox_layout)
+        side_layout.addStretch(10)
+        side_layout.addLayout(slider_layout)
 
         layout.addLayout(color1_layout)
         layout.addLayout(color2_layout)
-        layout.addLayout(checkbox_layout)
+        layout.addLayout(side_layout)
         layout.addWidget(self.save_button)
 
         self.setLayout(layout)
@@ -119,6 +160,119 @@ class SettingsWindow(QDialog):
         color = color_dialog.getColor()
         if color.isValid():
             self.color2_edit.setText(color.name())
+   
+    def handle_slider_value_changed(self):
+        value = self.slider.value()
+        self.mode_changed.emit(value)
+        if value == 0:
+            # Apply light mode styles
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #E0E0E0;
+                }
+                QLabel {
+                    font-size: 15px;
+                    color: #000000;
+                }
+                QLineEdit {
+                    padding: 2px;
+                    font-size: 15px;
+                    color: #000000;
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    background-color: #FFFFFF;
+                    selection-color: yellow;
+                    selection-background-color: blue;
+                }
+                QPushButton {
+                    padding: 6px 12px;
+                    font-size: 10px;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #286090;
+                    color: #FFFFFF;
+                }
+                QPushButton:hover {
+                    background-color: #1A4D73;
+                }
+                QPushButton:pressed {
+                    background-color: #144057;
+                }
+                QSlider {
+                    background-color: #e0e0e0;
+                    height: 10px;
+                    margin: 0;
+                    padding: 0;
+                }
+                QSlider::groove:horizontal {
+                    background-color: #a0a0a0;
+                    height: 6px;
+                    margin: 2px 0;
+                }
+                QSlider::handle:horizontal {
+                    background-color: #286090;
+                    border: 1px solid #000000;
+                    width: 14px;
+                    height: 14px;
+                    margin: -4px 0;
+                    border-radius: 7px;
+                }
+            """)
+
+        else:
+            # Apply dark mode styles
+            self.setStyleSheet("""
+                QDialog {
+                    background-color: #333333;
+                }
+                QLabel {
+                    font-size: 15px;
+                    color: #FFFFFF;
+                }
+                QLineEdit {
+                    padding: 2px;
+                    font-size: 15px;
+                    color: #FFFFFF;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #222222;
+                    selection-color: yellow;
+                    selection-background-color: blue;
+                }
+                QPushButton {
+                    padding: 6px 12px;
+                    font-size: 10px;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #286090;
+                    color: #FFFFFF;
+                }
+                QPushButton:hover {
+                    background-color: #1A4D73;
+                }
+                QPushButton:pressed {
+                    background-color: #144057;
+                }
+                QSlider {
+                    background-color: #333333;
+                    height: 10px;
+                    margin: 0;
+                    padding: 0;
+                }
+                QSlider::groove:horizontal {
+                    background-color: #a0a0a0;
+                    height: 6px;
+                    margin: 2px 0;
+                }
+                QSlider::handle:horizontal {
+                    background-color: #286090;
+                    border: 1px solid #000000;
+                    width: 14px;
+                    height: 14px;
+                    margin: -4px 0;
+                    border-radius: 7px;
+                }
+            """)
 
 
     def save_settings(self):
@@ -142,7 +296,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("PIE")
-        self.setMinimumSize(300, 200)
+        self.setMinimumSize(600, 400)
         self.setMaximumSize(600, 400)
 
         # Set the window flags to keep the window on top
@@ -165,18 +319,22 @@ class MainWindow(QMainWindow):
         self.settings_button = QPushButton("Settings")
         self.settings_button.clicked.connect(self.open_settings)
 
-        # Apply custom styles to the widgets
+        # Apply custom styles to the widgets (default dark mode)
         self.setStyleSheet("""
+            QMainWindow {
+                background-color: #333333;
+            }
             QLabel {
                 font-size: 15px;
                 color: #FFFFFF;
             }
             QLineEdit {
                 padding: 2px;
+                color: #FFFFFF;
                 font-size: 15px;
                 border: 1px solid #FFFFFF;
                 border-radius: 4px;
-                background-color: #333333;
+                background-color: #222222;
                 selection-color: yellow;
                 selection-background-color: blue;
             }
@@ -232,11 +390,14 @@ class MainWindow(QMainWindow):
         # Default colors for the pie chart
         self.color1 = "#56CA3D"
         self.color2 = "#CA3D3D"
+        self.checkbox = True
 
     def open_settings(self):
         settings_window = SettingsWindow(self)
         settings_window.color1_edit.setText(self.color1)
         settings_window.color2_edit.setText(self.color2)
+        settings_window.show_percentage.setChecked(self.checkbox)
+        settings_window.mode_changed.connect(self.handle_slider_value_changed)
         settings_window.save_clicked.connect(self.handle_settings_saved)
         settings_window.exec_()
 
@@ -244,8 +405,83 @@ class MainWindow(QMainWindow):
     def handle_settings_saved(self, color1, color2, state):
         self.color1 = color1
         self.color2 = color2
+        self.checkbox = state
         self.update_chart(state)
 
+    def handle_slider_value_changed(self, value):
+        if value == 0:
+            # Apply light mode styles
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #E0E0E0;
+                }
+                QLabel {
+                    font-size: 15px;
+                    color: #000000;
+                }
+                QLineEdit {
+                    padding: 2px;
+                    color: #000000;
+                    font-size: 15px;
+                    border: 1px solid #000000;
+                    border-radius: 4px;
+                    background-color: #FFFFFF;
+                    selection-color: yellow;
+                    selection-background-color: blue;
+                }
+                QPushButton {
+                    padding: 6px 12px;
+                    font-size: 10px;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #286090;
+                    color: #FFFFFF;
+                }
+                QPushButton:hover {
+                    background-color: #1A4D73;
+                }
+                QPushButton:pressed {
+                    background-color: #144057;
+                }
+            """)
+
+        else:
+            # Apply dark mode styles
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #333333;
+                }
+                QLabel {
+                    font-size: 15px;
+                    color: #FFFFFF;
+                }
+                QLineEdit {
+                    padding: 2px;
+                    color: #FFFFFF;
+                    font-size: 15px;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #222222;
+                    selection-color: yellow;
+                    selection-background-color: blue;
+                }
+                QPushButton {
+                    padding: 6px 12px;
+                    font-size: 10px;
+                    border: 1px solid #FFFFFF;
+                    border-radius: 4px;
+                    background-color: #286090;
+                    color: #FFFFFF;
+                }
+                QPushButton:hover {
+                    background-color: #1A4D73;
+                }
+                QPushButton:pressed {
+                    background-color: #144057;
+                }
+            """)
+
+    
 
     def update_chart(self, show_percentage):
         # Get the input values from the input fields
@@ -269,6 +505,7 @@ class MainWindow(QMainWindow):
         else:
             ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
         ax.axis('equal')
+        ax.set_title('Pie Chart Title')
 
         # Update the canvas
         self.canvas.draw()
