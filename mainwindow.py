@@ -15,8 +15,8 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Settings")
-        self.setMinimumSize(600, 400)
-        self.setMaximumSize(600, 400)
+        self.setMinimumSize(350, 200)
+        self.setMaximumSize(350, 200)
 
         layout = QVBoxLayout()
         color1_layout = QHBoxLayout()
@@ -83,7 +83,7 @@ class SettingsWindow(QDialog):
         slider_layout.addWidget(self.slider)
         slider_layout.addWidget(self.dark_label)
         side_layout.addLayout(checkbox_layout)
-        side_layout.addStretch(10)
+        side_layout.addStretch(1)
         side_layout.addLayout(slider_layout)
 
         layout.addLayout(color1_layout)
@@ -131,40 +131,65 @@ class SettingsWindow(QDialog):
                 QPushButton {
                     padding: 6px 12px;
                     font-size: 10px;
-                    border: 1px solid #FFFFFF;
+                    border: 1px solid #000000;
                     border-radius: 4px;
-                    background-color: #286090;
-                    color: #FFFFFF;
+                    background-color: #4787BD;
+                    color: #000000;
                 }
                 QPushButton:hover {
-                    background-color: #1A4D73;
+                    background-color: #3E76A6;
                 }
                 QPushButton:pressed {
-                    background-color: #144057;
+                    background-color: #36668F;
                 }
-             QSlider {
-                background-color: transparent;
-                height: 30px;
-                padding: 0;
-            }
-            QSlider::groove:horizontal {
-                background-color: #333333;
-                height: 6px;
-                border-radius: 3px;
-            }
-            QSlider::handle:horizontal {
-                background-color: #000000;
-                width: 20px;
-                height: 20px;
-                margin: -7px 0;
-                border-radius: 10px;
-            }
-            QSlider::handle:horizontal:hover {
-                background-color: #222222;
-            }
-            QSlider::handle:horizontal:pressed {
-                background-color: #444444;
-            }
+                QSlider {
+                    background-color: transparent;
+                    height: 30px;
+                    padding: 0;
+                }
+                QSlider::groove:horizontal {
+                    background-color: #333333;
+                    height: 6px;
+                    border-radius: 3px;
+                }
+                QSlider::handle:horizontal {
+                    background-color: #000000;
+                    width: 20px;
+                    height: 20px;
+                    margin: -7px 0;
+                    border-radius: 10px;
+                }
+                QSlider::handle:horizontal:hover {
+                    background-color: #333333;
+                }
+                QSlider::handle:horizontal:pressed {
+                    background-color: #555555;
+                }
+                QCheckBox {
+                    spacing: 5px;
+                }
+                QCheckBox::indicator {
+                    width: 20px;
+                    height: 20px;
+                }
+                QCheckBox::indicator:unchecked {
+                    image: url(images/checkbox_unchecked_light.png);
+                }
+                QCheckBox::indicator:unchecked:hover {
+                    image: url(images/checkbox_unchecked_hover_light.png);
+                }
+                QCheckBox::indicator:unchecked:pressed {
+                    image: url(images/checkbox_unchecked_pressed_light.png);
+                }
+                QCheckBox::indicator:checked {
+                    image: url(images/checkbox_checked_light.png);
+                }
+                QCheckBox::indicator:checked:hover {
+                    image: url(images/checkbox_checked_hover_light.png);
+                }
+                QCheckBox::indicator:checked:pressed {
+                    image: url(images/checkbox_checked_pressed_light.png);
+                }
             """)
 
         else:
@@ -219,10 +244,35 @@ class SettingsWindow(QDialog):
                     border-radius: 10px;
                 }
                 QSlider::handle:horizontal:hover {
-                    background-color: #E5E5E5;
+                    background-color: #DDDDDD;
                 }
                 QSlider::handle:horizontal:pressed {
-                    background-color: #CCCCCC;
+                    background-color: #BBBBBB;
+                }
+                QCheckBox {
+                    spacing: 5px;
+                }
+                QCheckBox::indicator {
+                    width: 20px;
+                    height: 20px;
+                }
+                QCheckBox::indicator:unchecked {
+                    image: url(images/checkbox_unchecked_dark.png);
+                }
+                QCheckBox::indicator:unchecked:hover {
+                    image: url(images/checkbox_unchecked_hover_dark.png);
+                }
+                QCheckBox::indicator:unchecked:pressed {
+                    image: url(images/checkbox_unchecked_pressed_dark.png);
+                }
+                QCheckBox::indicator:checked {
+                    image: url(images/checkbox_checked_dark.png);
+                }
+                QCheckBox::indicator:checked:hover {
+                    image: url(images/checkbox_checked_hover_dark.png);
+                }
+                QCheckBox::indicator:checked:pressed {
+                    image: url(images/checkbox_checked_pressed_dark.png);
                 }
             """)
 
@@ -239,6 +289,8 @@ class SettingsWindow(QDialog):
 
 
 
+###################################################################################################################################################################
+###################################################################################################################################################################
 ###################################################################################################################################################################
 
 
@@ -355,16 +407,16 @@ class MainWindow(QMainWindow):
                 QPushButton {
                     padding: 6px 12px;
                     font-size: 10px;
-                    border: 1px solid #FFFFFF;
+                    border: 1px solid #000000;
                     border-radius: 4px;
-                    background-color: #286090;
-                    color: #FFFFFF;
+                    background-color: #4787BD;
+                    color: #000000;
                 }
                 QPushButton:hover {
-                    background-color: #1A4D73;
+                    background-color: #3E76A6;
                 }
                 QPushButton:pressed {
-                    background-color: #144057;
+                    background-color: #36668F;
                 }
             """)
 
@@ -428,14 +480,14 @@ class MainWindow(QMainWindow):
 
         if self.mode:
             self.figure.set_facecolor('#333333') 
-            ax.set_title('Pie Chart Title', color='#FFFFFF', fontdict={"fontproperties": font_properties})
+            ax.set_title('(Pie Chart Title)', color='#FFFFFF', fontdict={"fontproperties": font_properties})
             if self.checkbox:
                 ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
             else:
                 ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
         else:
             self.figure.set_facecolor('#E0E0E0') 
-            ax.set_title('Pie Chart Title', color='#000000', fontdict={"fontproperties": font_properties})
+            ax.set_title('(Pie Chart Title)', color='#000000', fontdict={"fontproperties": font_properties})
             if self.checkbox:
                 ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "black"})
             else:
