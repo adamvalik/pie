@@ -7,6 +7,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtGui import QFont, QFontDatabase
 
 
+
 class SettingsWindow(QDialog):
     save_clicked = Signal(str, str, bool, int)
     mode_changed = Signal(int)
@@ -15,8 +16,8 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Settings")
-        self.setMinimumSize(350, 200)
-        self.setMaximumSize(350, 200)
+        #self.setMinimumSize(350, 200)
+        #self.setMaximumSize(350, 200)
 
         layout = QVBoxLayout()
         color1_layout = QHBoxLayout()
@@ -301,15 +302,18 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("PIE")
-        self.setMinimumSize(600, 400)
-        self.setMaximumSize(600, 400)
+        #self.setMinimumSize(600, 400)
+        #self.setMaximumSize(600, 400)
 
-        # Set the window flags to keep the window on top
+        self.main_widget = QWidget()
+        self.layout = QVBoxLayout(self.main_widget)
+        self.mini_layout = QVBoxLayout(self.main_widget)
+
+        self.input_layout = QHBoxLayout()
+        self.input2_layout = QHBoxLayout()
+
+        # Window stays on top
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
-
-        main_widget = QWidget()
-        layout = QVBoxLayout(main_widget)
-        input_layout = QHBoxLayout()
 
         # Create input fields
         input1_label = QLabel("Total:")
@@ -320,28 +324,46 @@ class MainWindow(QMainWindow):
         self.input2_edit = QLineEdit()
         self.input2_edit.textEdited.connect(self.update_chart)
 
-        # Create settings button
-        self.settings_button = QPushButton("Settings")
+        self.settings_button = QPushButton()
+        self.settings_button.setObjectName("settings")    
+        self.settings_button.setFixedSize(30, 30)
         self.settings_button.clicked.connect(self.open_settings)
 
-        # Apply custom styles to the widgets (default dark mode)
+        self.mini_button = QPushButton()
+        self.setCentralWidget(self.mini_button)
+        self.mini_button.setObjectName("mini")
+        self.mini_button.setFixedSize(30, 30)
+        #self.mini_button.clicked.connect(self.toggle_layout)
+
+        # Default dark mode
         self.set_mode(1)
 
         # Create a canvas for the matplotlib chart
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
 
-        # Add widgets to the layout
-        input_layout.addWidget(input1_label)
-        input_layout.addWidget(self.input1_edit)
-        input_layout.addWidget(input2_label)
-        input_layout.addWidget(self.input2_edit)
-        input_layout.addWidget(self.settings_button)
+        # LAYOUTS
+        self.input_layout.addWidget(input1_label)
+        self.input_layout.addWidget(self.input1_edit)
+        self.input_layout.addWidget(input2_label)
+        self.input_layout.addWidget(self.input2_edit)
+        self.input_layout.addSpacing(5)
+        self.input_layout.addWidget(self.settings_button)
+        self.input_layout.addWidget(self.mini_button)
 
-        layout.addLayout(input_layout)
-        layout.addWidget(self.canvas)
+        self.layout.addLayout(self.input_layout)
+        self.layout.addWidget(self.canvas)
 
-        self.setCentralWidget(main_widget)
+        #self.input2_layout.addWidget(self.input1_edit)
+        #self.input2_layout.addWidget(self.input2_edit)
+        #self.input2_layout.addWidget(self.mini_button)
+
+        #self.mini_layout.addWidget(self.canvas)
+        #self.mini_layout.addLayout(self.input2_layout)
+
+
+        self.setCentralWidget(self.main_widget)
+        #self.set_main_layout()
 
         # Load and set the font
         font_path = os.path.join(os.path.dirname(__file__), "Montserrat-Regular.ttf")
@@ -356,7 +378,6 @@ class MainWindow(QMainWindow):
             font = QFont(font_family)
             input1_label.setFont(font)
             input2_label.setFont(font)
-            self.settings_button.setFont(font)
 
 
         # Default colors for the pie chart
@@ -364,6 +385,7 @@ class MainWindow(QMainWindow):
         self.color2 = "#CA3D3D"
         self.checkbox = True
         self.mode = 1
+
 
     def open_settings(self):
         settings_window = SettingsWindow(self)
@@ -373,7 +395,7 @@ class MainWindow(QMainWindow):
         settings_window.show_percentage.setChecked(self.checkbox)
         settings_window.mode_changed.connect(self.set_mode)
         settings_window.save_clicked.connect(self.handle_settings_saved)
-        settings_window.exec_()
+        settings_window.exec()
 
     
     def handle_settings_saved(self, color1, color2, state, value):
@@ -405,18 +427,26 @@ class MainWindow(QMainWindow):
                     selection-background-color: blue;
                 }
                 QPushButton {
-                    padding: 6px 12px;
-                    font-size: 10px;
                     border: 1px solid #000000;
                     border-radius: 4px;
-                    background-color: #4787BD;
-                    color: #000000;
                 }
-                QPushButton:hover {
-                    background-color: #3E76A6;
+                #settings {
+                    image: url(images/settings_light.png);
                 }
-                QPushButton:pressed {
-                    background-color: #36668F;
+                #settings:hover {
+                    image: url(images/settings_hover_light.png);
+                }
+                #settings:pressed {
+                    image: url(images/settings_pressed_light.png);
+                }
+                #mini {
+                    image: url(images/mini_light.png);
+                }
+                #mini:hover {
+                    image: url(images/mini_hover_light.png);
+                }
+                #mini:pressed {
+                    image: url(images/mini_pressed_light.png);
                 }
             """)
 
@@ -441,18 +471,26 @@ class MainWindow(QMainWindow):
                     selection-background-color: blue;
                 }
                 QPushButton {
-                    padding: 6px 12px;
-                    font-size: 10px;
                     border: 1px solid #FFFFFF;
                     border-radius: 4px;
-                    background-color: #286090;
-                    color: #FFFFFF;
                 }
-                QPushButton:hover {
-                    background-color: #1A4D73;
+                #settings {
+                    image: url(images/settings_dark.png);
                 }
-                QPushButton:pressed {
-                    background-color: #144057;
+                #settings:hover {
+                    image: url(images/settings_hover_dark.png);
+                }
+                #settings:pressed {
+                    image: url(images/settings_pressed_dark.png);
+                }
+                #mini {
+                    image: url(images/mini_dark.png);
+                }
+                #mini:hover {
+                    image: url(images/mini_hover_dark.png);
+                }
+                #mini:pressed {
+                    image: url(images/mini_pressed_dark.png);
                 }
             """)
 
@@ -475,19 +513,19 @@ class MainWindow(QMainWindow):
 
         # Create the pie chart using Matplotlib
         ax = self.figure.add_subplot(111)
-        font_properties = font_manager.FontProperties(fname="Montserrat-Regular.ttf", size=15) 
+        #font_properties = font_manager.FontProperties(fname="Montserrat-Regular.ttf", size=15) 
 
 
         if self.mode:
             self.figure.set_facecolor('#333333') 
-            ax.set_title('(Pie Chart Title)', color='#FFFFFF', fontdict={"fontproperties": font_properties})
+            #ax.set_title('', color='#FFFFFF', fontdict={"fontproperties": font_properties})
             if self.checkbox:
                 ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
             else:
                 ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
         else:
             self.figure.set_facecolor('#E0E0E0') 
-            ax.set_title('(Pie Chart Title)', color='#000000', fontdict={"fontproperties": font_properties})
+            #ax.set_title('', color='#000000', fontdict={"fontproperties": font_properties})
             if self.checkbox:
                 ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "black"})
             else:
@@ -495,6 +533,6 @@ class MainWindow(QMainWindow):
 
         ax.axis('equal')
 
-
         # Update the canvas
         self.canvas.draw()
+
