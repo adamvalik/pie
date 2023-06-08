@@ -305,22 +305,22 @@ class MainWindow(QMainWindow):
         #self.setMinimumSize(600, 400)
         #self.setMaximumSize(600, 400)
 
-        self.main_widget = QWidget()
-        self.layout = QVBoxLayout(self.main_widget)
-        self.mini_layout = QVBoxLayout(self.main_widget)
-
-        self.input_layout = QHBoxLayout()
-        self.input2_layout = QHBoxLayout()
-
+        # Default dark mode
+        self.set_mode(1)
+        
         # Window stays on top
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
-
+        
+        self.main_widget = QWidget()
+        self.setCentralWidget(self.main_widget)
+        self.layout = QVBoxLayout()       
+      
         # Create input fields
-        input1_label = QLabel("Total:")
+        self.input1_label = QLabel("Total:")
         self.input1_edit = QLineEdit()
         self.input1_edit.textEdited.connect(self.update_chart)
 
-        input2_label = QLabel("Current:")
+        self.input2_label = QLabel("Current:")
         self.input2_edit = QLineEdit()
         self.input2_edit.textEdited.connect(self.update_chart)
 
@@ -330,40 +330,21 @@ class MainWindow(QMainWindow):
         self.settings_button.clicked.connect(self.open_settings)
 
         self.mini_button = QPushButton()
-        self.setCentralWidget(self.mini_button)
         self.mini_button.setObjectName("mini")
         self.mini_button.setFixedSize(30, 30)
-        #self.mini_button.clicked.connect(self.toggle_layout)
+        self.mini_button.clicked.connect(self.toggle_layout)
 
-        # Default dark mode
-        self.set_mode(1)
+        self.main_button = QPushButton()
+        self.main_button.setObjectName("main")
+        self.main_button.setFixedSize(30, 30)
+        self.main_button.clicked.connect(self.toggle_layout)
 
         # Create a canvas for the matplotlib chart
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
 
-        # LAYOUTS
-        self.input_layout.addWidget(input1_label)
-        self.input_layout.addWidget(self.input1_edit)
-        self.input_layout.addWidget(input2_label)
-        self.input_layout.addWidget(self.input2_edit)
-        self.input_layout.addSpacing(5)
-        self.input_layout.addWidget(self.settings_button)
-        self.input_layout.addWidget(self.mini_button)
-
-        self.layout.addLayout(self.input_layout)
-        self.layout.addWidget(self.canvas)
-
-        #self.input2_layout.addWidget(self.input1_edit)
-        #self.input2_layout.addWidget(self.input2_edit)
-        #self.input2_layout.addWidget(self.mini_button)
-
-        #self.mini_layout.addWidget(self.canvas)
-        #self.mini_layout.addLayout(self.input2_layout)
-
-
-        self.setCentralWidget(self.main_widget)
-        #self.set_main_layout()
+        # Set main layout as a default
+        self.set_main_layout()
 
         # Load and set the font
         font_path = os.path.join(os.path.dirname(__file__), "Montserrat-Regular.ttf")
@@ -376,8 +357,8 @@ class MainWindow(QMainWindow):
 
             # Set the font of the QLabel objects
             font = QFont(font_family)
-            input1_label.setFont(font)
-            input2_label.setFont(font)
+            self.input1_label.setFont(font)
+            self.input2_label.setFont(font)
 
 
         # Default colors for the pie chart
@@ -385,6 +366,70 @@ class MainWindow(QMainWindow):
         self.color2 = "#CA3D3D"
         self.checkbox = True
         self.mode = 1
+        self.is_mini_layout = False
+
+
+
+    def toggle_layout(self):
+        if self.is_mini_layout:
+            self.remove_mini_layout()
+            self.set_main_layout()
+            self.is_mini_layout = False
+        else:
+            self.remove_main_layout()
+            self.set_mini_layout()
+            self.is_mini_layout = True
+
+
+
+    def set_main_layout(self):  
+        self.input_layout = QHBoxLayout()      
+        self.input_layout.addWidget(self.input1_label)
+        self.input_layout.addWidget(self.input1_edit)
+        self.input_layout.addWidget(self.input2_label)
+        self.input_layout.addWidget(self.input2_edit)
+        self.input_layout.addWidget(self.settings_button)
+        self.input_layout.addWidget(self.mini_button)
+
+        self.layout.addLayout(self.input_layout)
+        self.layout.addWidget(self.canvas) 
+
+        self.main_widget.setLayout(self.layout)
+
+    def remove_main_layout(self):
+        self.layout.removeWidget(self.canvas)
+        self.layout.removeItem(self.input_layout)
+
+        self.input_layout.removeWidget(self.input1_label)
+        self.input_layout.removeWidget(self.input1_edit)
+        self.input_layout.removeWidget(self.input2_label)
+        self.input_layout.removeWidget(self.input2_edit)
+        self.input_layout.removeWidget(self.settings_button)
+        self.input_layout.removeWidget(self.mini_button)
+
+        self.main_widget.setLayout(None)
+
+    def set_mini_layout(self):
+        self.input2_layout = QHBoxLayout()
+        self.input2_layout.addWidget(self.input1_edit)
+        self.input2_layout.addWidget(self.input2_edit)
+        self.input2_layout.addWidget(self.main_button)
+
+        self.layout.addWidget(self.canvas)
+        self.layout.addLayout(self.input2_layout)
+
+        self.main_widget.setLayout(self.layout)
+
+    def remove_mini_layout(self):
+        self.layout.removeItem(self.input2_layout)
+        self.layout.removeWidget(self.canvas)
+
+        self.input2_layout.removeWidget(self.input1_edit)
+        self.input2_layout.removeWidget(self.input2_edit)
+        self.input2_layout.removeWidget(self.main_button)
+
+        self.main_widget.setLayout(None)
+
 
 
     def open_settings(self):
@@ -448,6 +493,15 @@ class MainWindow(QMainWindow):
                 #mini:pressed {
                     image: url(images/mini_pressed_light.png);
                 }
+                #main {
+                    image: url(images/main_light.png);
+                }
+                #main:hover {
+                    image: url(images/main_hover_light.png);
+                }
+                #main:pressed {
+                    image: url(images/main_pressed_light.png);
+                }
             """)
 
         else:
@@ -492,9 +546,16 @@ class MainWindow(QMainWindow):
                 #mini:pressed {
                     image: url(images/mini_pressed_dark.png);
                 }
+                #main {
+                    image: url(images/main_dark.png);
+                }
+                #main:hover {
+                    image: url(images/main_hover_dark.png);
+                }
+                #main:pressed {
+                    image: url(images/main_pressed_dark.png);
+                }
             """)
-
-    
 
     def update_chart(self):
         # Get the input values from the input fields
