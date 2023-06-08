@@ -1,10 +1,10 @@
 import os
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
-from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider
+from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider, QApplication
 from PySide6.QtCore import Qt, Signal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication
 
 
 
@@ -302,26 +302,24 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("PIE")
-        #self.setMinimumSize(600, 400)
-        #self.setMaximumSize(600, 400)
 
         # Default dark mode
         self.set_mode(1)
-        
-        # Window stays on top
-        self.setWindowFlags(Qt.WindowStaysOnTopHint)
-        
+                
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
-        self.layout = QVBoxLayout()       
+        self.layout = QVBoxLayout()     
+
+        self.input_layout = QHBoxLayout()      
+        self.input2_layout = QHBoxLayout()
       
         # Create input fields
         self.input1_label = QLabel("Total:")
-        self.input1_edit = QLineEdit()
+        self.input1_edit = QLineEdit("4")
         self.input1_edit.textEdited.connect(self.update_chart)
 
         self.input2_label = QLabel("Current:")
-        self.input2_edit = QLineEdit()
+        self.input2_edit = QLineEdit("1")
         self.input2_edit.textEdited.connect(self.update_chart)
 
         self.settings_button = QPushButton()
@@ -368,22 +366,43 @@ class MainWindow(QMainWindow):
         self.mode = 1
         self.is_mini_layout = False
 
-
+        self.update_chart()
 
     def toggle_layout(self):
         if self.is_mini_layout:
             self.remove_mini_layout()
             self.set_main_layout()
+            
+            self.show()
+
             self.is_mini_layout = False
+
         else:
             self.remove_main_layout()
             self.set_mini_layout()
+
+            self.show()
+
             self.is_mini_layout = True
 
 
 
     def set_main_layout(self):  
-        self.input_layout = QHBoxLayout()      
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+
+        window_width = 600  
+        window_height = 400  
+        
+        # Calculate the position for the center
+        x = (screen_geometry.right() + screen_geometry.left() - window_width) // 2
+        y = (screen_geometry.top() + screen_geometry.bottom() - window_height) // 2
+
+        self.setGeometry(x, y, window_width, window_height)
+
+        # Unset frameless window flag
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+
         self.input_layout.addWidget(self.input1_label)
         self.input_layout.addWidget(self.input1_edit)
         self.input_layout.addWidget(self.input2_label)
@@ -407,10 +426,24 @@ class MainWindow(QMainWindow):
         self.input_layout.removeWidget(self.settings_button)
         self.input_layout.removeWidget(self.mini_button)
 
-        self.main_widget.setLayout(None)
 
     def set_mini_layout(self):
-        self.input2_layout = QHBoxLayout()
+        screen = QGuiApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+
+        window_width = 200  
+        window_height = 200  
+
+        # Calculate the position for the right bottom corner
+        x = screen_geometry.right() - window_width 
+        y = screen_geometry.bottom() - window_height
+
+        self.setGeometry(100, 100, window_width, window_height)
+        self.setMaximumSize(200,200)
+
+        # Set frameless window flag
+        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+
         self.input2_layout.addWidget(self.input1_edit)
         self.input2_layout.addWidget(self.input2_edit)
         self.input2_layout.addWidget(self.main_button)
@@ -420,15 +453,13 @@ class MainWindow(QMainWindow):
 
         self.main_widget.setLayout(self.layout)
 
-    def remove_mini_layout(self):
+    def remove_mini_layout(self):        
         self.layout.removeItem(self.input2_layout)
         self.layout.removeWidget(self.canvas)
 
         self.input2_layout.removeWidget(self.input1_edit)
         self.input2_layout.removeWidget(self.input2_edit)
         self.input2_layout.removeWidget(self.main_button)
-
-        self.main_widget.setLayout(None)
 
 
 
@@ -581,16 +612,16 @@ class MainWindow(QMainWindow):
             self.figure.set_facecolor('#333333') 
             #ax.set_title('', color='#FFFFFF', fontdict={"fontproperties": font_properties})
             if self.checkbox:
-                ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
+                ax.pie(values, startangle=90, counterclock=False, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "white"})
             else:
-                ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
+                ax.pie(values, startangle=90, counterclock=False, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "white"})
         else:
             self.figure.set_facecolor('#E0E0E0') 
             #ax.set_title('', color='#000000', fontdict={"fontproperties": font_properties})
             if self.checkbox:
-                ax.pie(values, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "black"})
+                ax.pie(values, startangle=90, counterclock=False, colors=[self.color1, self.color2], autopct='%1.1f%%', wedgeprops={"linewidth": 1, "edgecolor": "black"})
             else:
-                ax.pie(values, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "black"})
+                ax.pie(values, startangle=90, counterclock=False, colors=[self.color1, self.color2], wedgeprops={"linewidth": 1, "edgecolor": "black"})
 
         ax.axis('equal')
 
