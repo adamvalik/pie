@@ -1,7 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
-from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider, QApplication
+from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QPushButton, QDialog, QColorDialog, QCheckBox, QSlider, QSizePolicy, QLayout
 from PySide6.QtCore import Qt, Signal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication
@@ -312,34 +312,6 @@ class MainWindow(QMainWindow):
 
         self.input_layout = QHBoxLayout()      
         self.input2_layout = QHBoxLayout()
-      
-        # Create input fields
-        self.input1_label = QLabel("Total:")
-        self.input1_edit = QLineEdit("4")
-        self.input1_edit.textEdited.connect(self.update_chart)
-
-        self.input2_label = QLabel("Current:")
-        self.input2_edit = QLineEdit("1")
-        self.input2_edit.textEdited.connect(self.update_chart)
-
-        self.settings_button = QPushButton()
-        self.settings_button.setObjectName("settings")    
-        self.settings_button.setFixedSize(30, 30)
-        self.settings_button.clicked.connect(self.open_settings)
-
-        self.mini_button = QPushButton()
-        self.mini_button.setObjectName("mini")
-        self.mini_button.setFixedSize(30, 30)
-        self.mini_button.clicked.connect(self.toggle_layout)
-
-        self.main_button = QPushButton()
-        self.main_button.setObjectName("main")
-        self.main_button.setFixedSize(30, 30)
-        self.main_button.clicked.connect(self.toggle_layout)
-
-        # Create a canvas for the matplotlib chart
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
 
         # Set main layout as a default
         self.set_main_layout()
@@ -365,22 +337,25 @@ class MainWindow(QMainWindow):
         self.checkbox = True
         self.mode = 1
         self.is_mini_layout = False
+        
+        self.update_chart() # For intial pie chart
 
-        self.update_chart()
 
     def toggle_layout(self):
         if self.is_mini_layout:
-            self.remove_mini_layout()
+            self.delete_layout_items(self.layout)
             self.set_main_layout()
             
+            self.update_chart()
             self.show()
 
             self.is_mini_layout = False
 
         else:
-            self.remove_main_layout()
+            self.delete_layout_items(self.layout)
             self.set_mini_layout()
-
+            
+            self.update_chart()
             self.show()
 
             self.is_mini_layout = True
@@ -388,6 +363,31 @@ class MainWindow(QMainWindow):
 
 
     def set_main_layout(self):  
+
+        # Create input fields
+        self.input1_label = QLabel("Total:")
+        self.input1_edit = QLineEdit("4")
+        self.input1_edit.textEdited.connect(self.update_chart)
+
+        self.input2_label = QLabel("Current:")
+        self.input2_edit = QLineEdit("1")
+        self.input2_edit.textEdited.connect(self.update_chart)
+
+        self.settings_button = QPushButton()
+        self.settings_button.setObjectName("settings")    
+        self.settings_button.setFixedSize(30, 30)
+        self.settings_button.clicked.connect(self.open_settings)
+
+        self.mini_button = QPushButton()
+        self.mini_button.setObjectName("mini")
+        self.mini_button.setFixedSize(30, 30)
+        self.mini_button.clicked.connect(self.toggle_layout)
+
+        # Create a canvas for the matplotlib chart
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        # Set size and position of the window
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
 
@@ -414,53 +414,64 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.canvas) 
 
         self.main_widget.setLayout(self.layout)
-
-    def remove_main_layout(self):
-        self.layout.removeWidget(self.canvas)
-        self.layout.removeItem(self.input_layout)
-
-        self.input_layout.removeWidget(self.input1_label)
-        self.input_layout.removeWidget(self.input1_edit)
-        self.input_layout.removeWidget(self.input2_label)
-        self.input_layout.removeWidget(self.input2_edit)
-        self.input_layout.removeWidget(self.settings_button)
-        self.input_layout.removeWidget(self.mini_button)
-
+        self.setCentralWidget(self.main_widget)
 
     def set_mini_layout(self):
+        # Create input fields
+        self.input1_edit = QLineEdit("4")
+        self.input1_edit.setMaxLength(5)  # Limiting to 5 characters
+        self.input1_edit.textEdited.connect(self.update_chart)
+
+        self.input2_edit = QLineEdit("1")
+        self.input2_edit.setMaxLength(5)  # Limiting to 5 characters
+        self.input2_edit.textEdited.connect(self.update_chart)
+
+        self.main_button = QPushButton()
+        self.main_button.setObjectName("main")
+        self.main_button.setFixedSize(20, 20)
+        self.main_button.clicked.connect(self.toggle_layout)
+
+        # Create a canvas for the matplotlib chart
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+
+        # Set size and position of the window
         screen = QGuiApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
 
-        window_width = 200  
-        window_height = 200  
+        window_width = 260  
+        window_height = 260  
 
         # Calculate the position for the right bottom corner
         x = screen_geometry.right() - window_width 
         y = screen_geometry.bottom() - window_height
 
-        self.setGeometry(100, 100, window_width, window_height)
-        self.setMaximumSize(200,200)
+        self.setGeometry(x, y, window_width, window_height)
 
         # Set frameless window flag
         self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
 
+        self.input2_layout.addWidget(self.main_button)
         self.input2_layout.addWidget(self.input1_edit)
         self.input2_layout.addWidget(self.input2_edit)
-        self.input2_layout.addWidget(self.main_button)
+        #self.input2_layout.setSizeConstraint(QLayout.SetMinimumSize)  # Set size policy
+
 
         self.layout.addWidget(self.canvas)
         self.layout.addLayout(self.input2_layout)
 
         self.main_widget.setLayout(self.layout)
+        self.setCentralWidget(self.main_widget)
 
-    def remove_mini_layout(self):        
-        self.layout.removeItem(self.input2_layout)
-        self.layout.removeWidget(self.canvas)
 
-        self.input2_layout.removeWidget(self.input1_edit)
-        self.input2_layout.removeWidget(self.input2_edit)
-        self.input2_layout.removeWidget(self.main_button)
-
+    def delete_layout_items(self, layout):
+        while layout.count() > 0:
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            else:
+                self.delete_layout_items(item.layout())
 
 
     def open_settings(self):
